@@ -1,0 +1,75 @@
+tools:
+  - name: food_recommendation
+    description: >
+      Tìm kiếm, lọc và gợi ý món ăn từ dataset nội bộ Shopee Food dựa trên yêu cầu
+      của người dùng. Luôn gọi tool này khi người dùng muốn tìm món ăn, hỏi "ăn gì",
+      cần gợi ý đồ ăn theo loại món, hương vị, ngân sách, khoảng cách, hoặc cần tránh
+      dị ứng/thành phần không mong muốn. Tool áp dụng hard filter theo bán kính,
+      ngân sách và dị ứng, sau đó soft match theo loại món và hương vị để trả về
+      tối đa 3 món phù hợp nhất. Kết quả có tên món, giá, thành phần, khoảng cách
+      và lý do gợi ý; chỉ dùng dữ liệu tool trả về, không tự bịa món/giá/thành phần.
+    parameters:
+      type: object
+      properties:
+        loai_mon:
+          type: string
+          description: >
+            Loại món người dùng muốn ăn. Ví dụ: đồ nước, đồ khô, ăn vặt.
+            Để chuỗi rỗng nếu người dùng chưa nêu rõ.
+        vi:
+          type: string
+          description: >
+            Hương vị hoặc tag món ăn mong muốn. Ví dụ: thanh đạm, đậm đà, cay,
+            chua ngọt, nóng sốt, ít béo, truyền thống. Để chuỗi rỗng nếu chưa rõ.
+        di_ung:
+          type: array
+          items:
+            type: string
+          description: >
+            Danh sách thành phần/dị ứng cần tránh. Ví dụ: đậu phộng, hải sản,
+            tôm, cua, trứng, mắm tôm. Nếu người dùng xác nhận không dị ứng thì
+            truyền mảng rỗng.
+        ban_kinh_km:
+          type: number
+          description: >
+            Bán kính tối đa tính bằng km. Nếu người dùng không nêu, dùng 3.0
+            để ưu tiên món gần và giao nhanh.
+          default: 3.0
+        ngan_sach:
+          type: integer
+          description: >
+            Ngân sách tối đa cho 1 món, đơn vị VNĐ. Nếu người dùng không nêu
+            ngân sách, truyền 0 để không giới hạn.
+          default: 0
+      required: []
+
+  - name: clarify
+    description: >
+      Hỏi lại người dùng khi thông tin chưa đủ, mơ hồ hoặc mâu thuẫn để đưa ra
+      gợi ý món ăn an toàn và đúng nhu cầu hơn. Bắt buộc ưu tiên dùng tool này
+      trước khi gợi ý nếu người dùng chưa nói rõ có dị ứng/kiêng thành phần nào
+      hay không. Cũng dùng khi cần hỏi thêm loại món, hương vị, ngân sách, bán kính,
+      hoặc cần xác nhận lại yêu cầu không thể thỏa mãn cùng lúc.
+    parameters:
+      type: object
+      properties:
+        question:
+          type: string
+          description: >
+            Câu hỏi ngắn gọn, thân thiện để lấy thêm thông tin còn thiếu.
+            Nên hỏi một vấn đề chính mỗi lần.
+        response_type:
+          type: string
+          enum: [text, choice]
+          description: >
+            Kiểu trả lời mong đợi. Dùng text cho câu trả lời tự do; dùng choice
+            khi đưa ra một vài lựa chọn cụ thể.
+          default: text
+        options:
+          type: array
+          items:
+            type: string
+          description: >
+            Danh sách lựa chọn khi response_type là choice. Để mảng rỗng khi
+            response_type là text.
+      required: [question]
