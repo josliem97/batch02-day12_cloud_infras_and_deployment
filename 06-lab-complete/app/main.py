@@ -28,8 +28,15 @@ logging.basicConfig(
     format='{"ts":"%(asctime)s","lvl":"%(levelname)s","msg":"%(message)s"}',
 )
 logger = logging.getLogger(__name__)
+_redis_client = None
 
-r = redis.from_url(settings.redis_url, decode_responses=True)
+def get_redis():
+    global _redis_client
+    if _redis_client is None:
+        if not settings.redis_url or not settings.redis_url.startswith(("redis://", "rediss://", "unix://")):
+            return None
+        _redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+    return _redis_client
 
 START_TIME = time.time()
 _is_ready = False
@@ -69,11 +76,15 @@ async def lifespan(app: FastAPI):
         "version": settings.app_version,
         "environment": settings.environment,
     }))
-    try:
-        r.ping()
-        logger.info("Redis connection successful.")
-    except Exception as e:
-        logger.error(f"Redis connection failed: {e}")
+    r = get_redis()
+    if r:
+        try:
+            r.ping()
+            logger.info("Redis connection successful.")
+        except Exception as e:
+            logger.error(f"Redis connection failed: {e}")
+    else:
+        logger.warning("Redis is not configured. In-memory mode active.")
     
     _is_ready = True
     logger.info(json.dumps({"event": "ready"}))
@@ -163,9 +174,13 @@ async def ask_agent(
     }))
 
     # 3. Retrieve Stateless Conversation History from Redis
+    r = get_redis()
+    history_msgs = []
     history_key = f"chat_history:{body.user_id}"
-    history_raw = r.lrange(history_key, 0, -1)
-    history_msgs = [json.loads(h) for h in history_raw]
+    
+    if r:
+        history_raw = r.lrange(history_key, 0, -1)
+        history_msgs = [json.loads(h) for h in history_raw]
     
     # Optional: Trim history
     trim_window = 10
@@ -197,9 +212,10 @@ async def ask_agent(
     check_and_record_cost(body.user_id, 0, output_tokens)
 
     # 6. Save new messages back to Redis
-    r.rpush(history_key, json.dumps({"role": "user", "content": body.question}))
-    r.rpush(history_key, json.dumps({"role": "assistant", "content": answer}))
-    r.expire(history_key, 24 * 3600)  # TTL 24h
+    if r:
+        r.rpush(history_key, json.dumps({"role": "user", "content": body.question}))
+        r.rpush(history_key, json.dumps({"role": "assistant", "content": answer}))
+        r.expire(history_key, 24 * 3600)  # TTL 24h
 
     return AskResponse(
         question=body.question,
@@ -212,12 +228,15 @@ async def ask_agent(
 @app.get("/health", tags=["Operations"])
 def health():
     status = "ok"
-    try:
-        r.ping()
-        redis_status = "ok"
-    except Exception:
-        redis_status = "error"
-        status = "degraded"
+    r = get_redis()
+    redis_status = "not_configured"
+    if r:
+        try:
+            r.ping()
+            redis_status = "ok"
+        except Exception:
+            redis_status = "error"
+            status = "degraded"
 
     checks = {
         "redis": redis_status,
