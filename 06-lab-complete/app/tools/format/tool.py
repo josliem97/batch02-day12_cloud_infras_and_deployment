@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from tools._shared import domain
+from app.tools._shared import domain
 
 
 def _src(item: dict[str, Any]) -> str:

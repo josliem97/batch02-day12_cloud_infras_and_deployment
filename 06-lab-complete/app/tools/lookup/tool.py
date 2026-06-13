@@ -6,7 +6,7 @@ from typing import Any
 
 import requests
 
-from tools._shared import TIMEOUT, domain, err
+from app.tools._shared import TIMEOUT, domain, err
 
 VN_NEWS_DOMAINS = [
     "vnexpress.net",

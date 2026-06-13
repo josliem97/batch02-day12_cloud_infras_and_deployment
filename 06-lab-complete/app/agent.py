@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from providers.base import Provider, ToolCall
+from app.providers.base import Provider, ToolCall
 from tools import TOOL_FUNCTIONS
 
 

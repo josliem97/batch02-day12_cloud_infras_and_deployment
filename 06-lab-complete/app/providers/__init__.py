@@ -1,8 +1,8 @@
-from providers.openai_provider import OpenAIProvider
-from providers.openrouter_provider import OpenRouterProvider
-from providers.anthropic_provider import AnthropicProvider
-from providers.gemini_provider import GeminiProvider
-from providers.opencode_provider import OpenCodeProvider
+from app.providers.openai_provider import OpenAIProvider
+from app.providers.openrouter_provider import OpenRouterProvider
+from app.providers.anthropic_provider import AnthropicProvider
+from app.providers.gemini_provider import GeminiProvider
+from app.providers.opencode_provider import OpenCodeProvider
 
 
 def make_provider(name: str):

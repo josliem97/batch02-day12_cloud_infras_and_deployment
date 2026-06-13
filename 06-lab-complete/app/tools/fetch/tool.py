@@ -7,7 +7,7 @@ from typing import Any
 import requests
 from html.parser import HTMLParser
 
-from tools._shared import TIMEOUT, domain, err
+from app.tools._shared import TIMEOUT, domain, err
 
 
 class _TextExtractor(HTMLParser):

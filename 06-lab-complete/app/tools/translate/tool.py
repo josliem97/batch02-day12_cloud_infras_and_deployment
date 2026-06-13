@@ -4,7 +4,7 @@ from typing import Any
 
 import requests
 
-from tools._shared import TIMEOUT, err
+from app.tools._shared import TIMEOUT, err
 
 
 def translate_text(text: str = "", source_lang: str = "auto", target_lang: str = "en") -> dict[str, Any]:

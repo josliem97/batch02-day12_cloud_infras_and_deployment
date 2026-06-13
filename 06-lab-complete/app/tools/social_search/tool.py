@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-from tools._shared import TIMEOUT, err
+from app.tools._shared import TIMEOUT, err
 
 
 def _apify_search(query: str, search_type: str, limit: int) -> dict[str, Any]:

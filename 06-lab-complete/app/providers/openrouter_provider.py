@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from providers.openai_provider import OpenAIProvider
+from app.providers.openai_provider import OpenAIProvider
 
 
 class OpenRouterProvider(OpenAIProvider):

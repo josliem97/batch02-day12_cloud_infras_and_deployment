@@ -7,7 +7,7 @@ from typing import Any
 
 import requests
 
-from tools._shared import TIMEOUT, err
+from app.tools._shared import TIMEOUT, err
 
 
 def _clean_xml(text: str) -> str:

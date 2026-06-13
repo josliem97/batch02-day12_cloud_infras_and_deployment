@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any
 
-from providers.base import ModelResponse, ToolCall
+from app.providers.base import ModelResponse, ToolCall
 
 
 class OpenAIProvider:

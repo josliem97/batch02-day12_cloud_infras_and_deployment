@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 
-from tools._shared import ROOT, err, fold_text, terms
+from app.tools._shared import ROOT, err, fold_text, terms
 
 
 POLICY_DIR = ROOT / "company_policy"
