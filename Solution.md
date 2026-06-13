@@ -92,3 +92,29 @@ def check_budget(user_id: str, estimated_cost: float) -> bool:
 **Exercise 5.3: Stateless design**
 - **Anti-pattern:** Khai báo Dict `conversation_history = {}` lưu global in-memory. Request đầu bị đưa tới Server 1. Lúc Request sau đưa tới Server 2 (do scale ra 2 bản), User sẽ bị mất luồng chat vì Server 2 hoàn toàn không biết `conversation_history` đó.
 - **Refactor Code (Best Practice):** Bắt buộc lưu lịch sử đoạn hội thoại ra DataStore riêng như `Redis`. (Ví dụ: `r.lrange(f"history:{user_id}", 0, -1)`).
+
+---
+
+## Part 6: Project Assignment - Restructure & Deploy Production
+
+**Mục tiêu**: Refactor dự án (Batch02-Day6 - Ứng dụng AI Gợi ý Món Ăn/Food Finder) đang sử dụng Streamlit và đóng gói lại thành REST API theo tiêu chuẩn Production.
+
+1. **Quá trình di chuyển (Migration) thành API:**
+  - Loại bỏ hoàn toàn frontend giao diện nguyên mẫu của Streamlit (`st.session_state`, `st.chat_message`). 
+  - Đưa bộ tập lệnh logic, prompt templates (nằm ở thư mục `artifacts`), custom AI providers (`OpenAI`), và danh sách các functions/tools vào cấu trúc framework `FastAPI` (trong component `/app/`).
+
+2. **Stateless Conversation Tracking:**
+  - **Vấn đề Cũ:** In-memory context của server dễ tạo bug làm rớt context chat khi scale ra nhiều server để Cân bằng tải.
+  - **Khắc phục:** Tái cấu trúc theo thiết kế Stateless. Tại từng endpoint `POST /ask`, Backend gọi Redis DB load lịch sử chat của `user_id`. Backend kết nối lại LLM để fetch reply về, sau đó tiếp tục nhét ngược History mới trở lại Redis. Container lúc này hoàn toàn vô hướng mỏng nhẹ (Stateless).
+
+3. **Enterprise Middleware Configurations:**
+  - **Rate Limiting:** Sử dụng Redis làm bộ đếm thuật toán cho Rate Limit (Chặn spam DDoS bằng Sliding Counter Window). 
+  - **Cost Guard:** Giới hạn $5.0 Budget USD mỗi ngày. Thuật toán tracking theo dõi sát sao số token LLM được sinh ra và ghi lại chi phí sử dụng theo Key user.
+
+4. **Dockerization Settings:**
+  - Viết lại `requirements.txt` bằng cách gộp cả dependencies của FastAPI và AI Agent Hackathon code.
+  - Chạy Multi-stage build (`Dockerfile`), cài tự động quyền non-root user `agent` để ngăn tấn công leo thang quyền máy chủ nếu lộ API.
+  
+5. **API Deployment URL:**
+  - Tích hợp và tự động deploy qua cloud platform.
+  - **Public Link API:** `https://batch02-day12cloudinfrasanddeployment-production-dad3.up.railway.app/`
